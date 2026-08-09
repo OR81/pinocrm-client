@@ -11,7 +11,7 @@ export const mockDashboard = {
 
     id: 1042,
 
-    fullName: "آیلین ",
+    fullName: "رجبی ",
 
     studentNumber: "40412087",
 
