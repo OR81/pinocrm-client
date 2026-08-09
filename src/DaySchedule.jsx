@@ -1,6 +1,6 @@
 import "./DaySchedule.css";
 
-import { faTime, faWeekday, faHourLabel, minutesOfDay } from "./format";
+import { faTime, faWeekday, faHourLabel, minutesOfDay, courseColor } from "./format";
 
 
 /* بازه‌ی ساعت‌ها از روی خود کلاس‌ها حساب می‌شود */
@@ -70,6 +70,7 @@ const DaySchedule = ({ day, courses }) => {
               className="dayEvent"
               key={item.id}
               style={{
+                "--course": courseColor(item.id),
                 top: toTop(item.startsAt),
                 height: toTop(item.endsAt) - toTop(item.startsAt),
               }}

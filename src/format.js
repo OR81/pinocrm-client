@@ -106,3 +106,12 @@ export const minutesOfDay = (iso) => {
   return Number(hour) * 60 + Number(minute);
 
 };
+
+
+/* رنگ هر دوره از روی id ساخته می‌شود تا در همه‌ی بخش‌ها یکسان بماند
+   و بک‌اند لازم نباشد فیلد رنگ بفرستد. */
+
+const COURSE_COLORS = ["#2078ff", "#7c3aed", "#059669", "#d97706"];
+
+export const courseColor = (id) =>
+  COURSE_COLORS[(id - 1) % COURSE_COLORS.length];

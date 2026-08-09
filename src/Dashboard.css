@@ -155,6 +155,42 @@
 
 }
 
+.statTop{
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:space-between;
+
+    gap:10px;
+
+}
+
+.statIcon{
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    width:34px;
+
+    height:34px;
+
+    border-radius:9px;
+
+    background:var(--brand-soft);
+
+    color:var(--brand);
+
+    font-size:18px;
+
+    flex-shrink:0;
+
+}
+
 .statLabel{
 
     font-size:12px;
@@ -211,6 +247,8 @@
 
     border:1px solid var(--border);
 
+    border-right:3px solid var(--course);
+
     border-radius:10px;
 
     padding:14px 16px;
@@ -257,9 +295,9 @@
 
     border-radius:6px;
 
-    background:var(--brand-soft);
+    background:color-mix(in srgb, var(--course) 10%, #fff);
 
-    color:var(--brand-text);
+    color:var(--course);
 
     font-size:12px;
 
@@ -283,7 +321,7 @@
 
     height:100%;
 
-    background:var(--brand);
+    background:var(--course);
 
 }
 

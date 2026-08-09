@@ -1,10 +1,16 @@
 import "./Dashboard.css";
 
-import { MdArrowBack } from "react-icons/md";
+import {
+  MdArrowBack,
+  MdMenuBook,
+  MdAccessTime,
+  MdEventAvailable,
+  MdPlaylistAddCheck,
+} from "react-icons/md";
 
 import DaySchedule from "./DaySchedule";
 
-import { faNumber, faTime, faWeekday, faFullDate } from "./format";
+import { faNumber, faTime, faWeekday, faFullDate, courseColor } from "./format";
 
 
 const Dashboard = ({ term, classDay, courses, serverTime }) => {
@@ -24,6 +30,14 @@ const Dashboard = ({ term, classDay, courses, serverTime }) => {
     courses.find((item) => new Date(item.startsAt) > now) || courses[0];
 
 
+  /* روزهای مانده تا پایان دوره */
+
+  const daysLeft = Math.max(
+    0,
+    Math.ceil((new Date(term.endDate) - now) / 86400000)
+  );
+
+
   const stats = [
 
     {
@@ -31,6 +45,7 @@ const Dashboard = ({ term, classDay, courses, serverTime }) => {
       label: "دوره‌های من",
       value: faNumber(courses.length),
       hint: term.title,
+      icon: <MdMenuBook />,
     },
 
     {
@@ -38,20 +53,23 @@ const Dashboard = ({ term, classDay, courses, serverTime }) => {
       label: "کلاس بعدی",
       value: nextCourse ? faTime(nextCourse.startsAt) : "—",
       hint: nextCourse ? `${faWeekday(classDay)} — ${nextCourse.title}` : "کلاسی ثبت نشده",
+      icon: <MdAccessTime />,
     },
 
     {
       id: 3,
-      label: "پیشرفت دوره‌ها",
-      value: `${faNumber(Math.round((heldSessions / totalSessions) * 100))}٪`,
-      hint: `${faNumber(heldSessions)} جلسه از ${faNumber(totalSessions)}`,
+      label: "تا پایان دوره",
+      value: `${faNumber(daysLeft)} روز`,
+      hint: faFullDate(term.endDate),
+      icon: <MdEventAvailable />,
     },
 
     {
       id: 4,
       label: "جلسات باقی‌مانده",
       value: faNumber(totalSessions - heldSessions),
-      hint: "تا پایان دوره",
+      hint: `از مجموع ${faNumber(totalSessions)} جلسه`,
+      icon: <MdPlaylistAddCheck />,
     },
 
   ];
@@ -76,7 +94,13 @@ const Dashboard = ({ term, classDay, courses, serverTime }) => {
 
           <div className="box stat" key={item.id}>
 
-            <span className="statLabel">{item.label}</span>
+            <div className="statTop">
+
+              <span className="statLabel">{item.label}</span>
+
+              <span className="statIcon">{item.icon}</span>
+
+            </div>
 
             <h2>{item.value}</h2>
 
@@ -116,7 +140,11 @@ const Dashboard = ({ term, classDay, courses, serverTime }) => {
 
             {courses.map((item) => (
 
-              <div className="course" key={item.id}>
+              <div
+                className="course"
+                key={item.id}
+                style={{ "--course": courseColor(item.id) }}
+              >
 
                 <div className="courseTop">
 
