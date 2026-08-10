@@ -1,9 +1,8 @@
 import { useState } from 'react'
-import DashboardShell from '../components/DashboardShell'
-import Icon from '../components/Icon'
-import { Chip, StatCard, Bar, Avatar, money, num, toFa } from '../components/ui'
-import { COURSES, INSTRUCTOR } from '../data/site'
-
+import DashboardShell from '../../components/DashboardShell'
+import Icon from '../../components/Icon'
+import { Chip, StatCard, Bar, Avatar, money, num, toFa } from '../../components/ui'
+import { COURSES, INSTRUCTOR } from '../../data/site'
 const NAV = [
   {
     label: 'یادگیری',

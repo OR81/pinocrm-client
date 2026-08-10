@@ -12,9 +12,8 @@ import About from './pages/About'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import ForgotPassword from './pages/ForgotPassword'
-import StudentDashboard from './pages/StudentDashboard'
-import InstructorDashboard from './pages/InstructorDashboard'
-
+import StudentDashboard from './pages/students/Dashboard'
+import InstructorDashboard from './pages/Instructor/Dashboard'
 /** صفحاتی که هدر و فوتر عمومی ندارند */
 const BARE = ['/login', '/forgot-password', '/dashboard']
 
