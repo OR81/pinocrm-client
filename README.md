@@ -1,70 +1,165 @@
-# Getting Started with Create React App
+# سایت پینو سایت
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+وب‌سایت کامل پینو سایت — لندینگ، خدمات، کلاس‌ها، احراز هویت و دو داشبورد (دانشجو و استاد).
 
-## Available Scripts
+ساخته‌شده با **React 19 + Vite + Tailwind CSS v4**، راست‌چین، با پالت برند و لوگوی خودتان.
 
-In the project directory, you can run:
+---
 
-### `npm start`
+## اجرا
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+```bash
+npm install
+npm run dev            # http://localhost:5174
+```
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## بیلد
 
-### `npm test`
+```bash
+npm run build          # dist/  → روی هاست
+npm run build:single   # dist-single/index.html → یک فایل مستقل برای دمو
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+---
 
-### `npm run build`
+## صفحات
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+| مسیر | صفحه |
+|---|---|
+| `/` | لندینگ: هیرو، چرا ما، **بخش ثبت‌نام** (`#register`)، خدمات، استاد، نظرات، سوالات، CTA |
+| `/services` | خدمات — هر سرویس با «دقیقاً چه کاری می‌کند»، مشکل رایج و نتیجه |
+| `/courses` | لیست کلاس‌ها + جدول مقایسه + تقویم یکشنبه‌ها |
+| `/courses/n8n` | صفحه اختصاصی دوره اتوماسیون با n8n |
+| `/courses/python` | صفحه اختصاصی دوره برنامه‌نویسی پایتون |
+| `/about` | درباره ما و تماس |
+| `/login` | ورود (با سوییچ نقش دانشجو/استاد برای دمو) |
+| `/register` | ثبت‌نام — همان فرم و منطق `app.js` (انتخاب دوره، خلاصه سفارش، شمارش معکوس، درگاه) |
+| `/forgot-password` | بازیابی رمز در سه مرحله (موبایل → کد → رمز جدید) |
+| `/dashboard/student` | داشبورد دانشجو |
+| `/dashboard/instructor` | داشبورد استاد |
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+مسیریابی با `HashRouter` است تا روی هر هاستی بدون تنظیم rewrite کار کند.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+---
 
-### `npm run eject`
+## تم روشن و تیره
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+هر دو تم پشتیبانی می‌شود. کلید تعویض در هدر سایت، هدر داشبوردها و بالای صفحات ورود/بازیابی رمز است.
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+- انتخاب کاربر در `localStorage` با کلید `pino.theme` ذخیره می‌شود.
+- اگر کاربر چیزی انتخاب نکرده باشد، از تنظیم سیستم‌عامل (`prefers-color-scheme`) پیروی می‌کند.
+- تم روی `<html data-theme="light|dark">` اعمال می‌شود.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+پیاده‌سازی بر پایه **توکن‌های معنایی** است، نه کلاس‌های `dark:` پراکنده:
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+```
+--color-page  --color-surface  --color-surface-2  --color-surface-3
+--color-line  --color-line-soft
+--color-fg    --color-fg2      --color-fg-muted   --color-fg-subtle
+```
 
-## Learn More
+کامپوننت‌ها از `bg-surface`، `text-fg`، `border-line` و … استفاده می‌کنند؛ در بلوک `[data-theme='dark']` فقط
+مقدار همین متغیرها عوض می‌شود و کل سایت تیره می‌شود. تینت‌های brand و رنگ‌های وضعیت (emerald/amber/rose)
+هم برای پس‌زمینه تیره بازتعریف شده‌اند.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+بخش‌های هیرو و پنل خلاصه سفارش عمداً در هر دو تم تیره می‌مانند — بخشی از هویت بصری برند هستند.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+---
 
-### Code Splitting
+## صفحه ثبت‌نام
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+منطق صفحه ثبت‌نام دقیقاً از `app.js` شما پورت شده است:
 
-### Analyzing the Bundle Size
+| رفتار در `app.js` | معادل در React |
+|---|---|
+| همگام‌سازی کارت‌های دوره با فرم | `useRegister()` — یک state واحد برای انتخاب دوره |
+| محاسبه زنده خلاصه سفارش | `summary` (جمع کل، قسط اول، مانده) |
+| شمارش معکوس تا شروع دوره | `useCountdown()` + کامپوننت `Countdown` |
+| نوار چسبان پایین موبایل | `MobileBar` — با همان منطق «فرم در دید هست یا نه» |
+| نرمال‌سازی موبایل (۰۰۹۸، ۹۸، ارقام فارسی) | `normalizeMobile()` — کد یکسان |
+| اعتبارسنجی و اسکرول به اولین خطا | `validate()` + `scrollIntoView` |
+| قفل دکمه و «در حال انتقال به درگاه…» | حالت `submitting` |
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+فایل‌ها: `src/components/register/useRegister.js` و `RegisterSection.jsx`
 
-### Making a Progressive Web App
+این بخش هم در صفحه اصلی (`#register`) و هم در صفحه `/register` استفاده می‌شود — یک منبع، دو محل نمایش.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+نقطه اتصال به بک‌اند در `useRegister.js` با `// TODO` مشخص شده:
+`POST /enrollments` → `{ paymentUrl }` و سپس ریدایرکت به درگاه.
 
-### Advanced Configuration
+> صفحه ورود طبق درخواست شما دست‌نخورده مانده؛ فقط رنگ‌هایش به توکن‌های معنایی تبدیل شده تا در تم تیره هم درست دیده شود.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+---
 
-### Deployment
+## سیستم طراحی
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+توکن‌ها دقیقاً از `app.css` پروژه خودتان استخراج شده و در `src/app.css` داخل `@theme` تعریف شده‌اند:
 
-### `npm run build` fails to minify
+```
+brand-500  #3a86ff      ink-900  #141a27
+brand-600  #2078ff      ink-950  #0a0e18
+brand-700  #1462db      ink-200  #d5d9e2
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+کلاس‌های کامپوننتی موجود در پروژه شما هم عیناً بازتعریف شده‌اند تا کدهای قبلی سازگار بمانند:
+
+`.container-x` · `.card` · `.chip` · `.field` · `.field-error` · `.label` · `.section-title` · `.section-sub` · `.grid-bg` · `.course-card[data-selected]`
+
+به‌علاوه چند کلاس دکمه اضافه شده: `.btn` · `.btn-primary` · `.btn-ghost` · `.btn-light` · `.btn-outline-light`
+
+**فونت:** Vazirmatn variable، به‌صورت لوکال باندل شده (`src/assets/vazirmatn-var.woff2`) — بدون CDN.
+
+**لوگو:** فایل PNG شما به SVG برداری تبدیل شده و در `src/components/Logo.jsx` قرار دارد. با `currentColor` رنگ می‌گیرد:
+
+```jsx
+<Logo className="h-10 w-10 text-brand-600" />   // روی پس‌زمینه روشن
+<Logo className="h-12 w-12 text-brand-500" />   // روی پس‌زمینه تیره
+<LogoWordmark markClass="h-9 w-9 text-brand-600" />  // لوگو + نام برند
+```
+
+---
+
+## ساختار
+
+```
+src/
+├── app.css                    ← توکن‌های برند و کلاس‌های کامپوننتی
+├── data/site.js               ← ★ تمام محتوای سایت (دوره‌ها، خدمات، نظرات، FAQ)
+├── components/
+│   ├── Logo.jsx               ← لوگوی برداری + ورد‌مارک
+│   ├── Icon.jsx               ← آیکون‌های خطی، بدون کتابخانه خارجی
+│   ├── ui.jsx                 ← Chip، SectionHead، CheckList، Accordion، StatCard، Bar…
+│   ├── Navbar.jsx / Footer.jsx
+│   ├── AuthLayout.jsx         ← پوسته دوستونه صفحات ورود/ثبت‌نام
+│   └── DashboardShell.jsx     ← سایدبار + هدر مشترک دو داشبورد
+└── pages/                     ← ۱۱ صفحه
+```
+
+### ویرایش محتوا
+
+تقریباً همه متن‌ها در `src/data/site.js` هستند: مشخصات دوره‌ها، سرفصل ۱۶ جلسه هرکدام، سوالات متداول، خدمات، نظرات و اطلاعات تماس. برای تغییر شهریه، ساعت کلاس یا اضافه کردن دوره سوم فقط همین فایل را ویرایش کنید — صفحات خودشان به‌روز می‌شوند.
+
+---
+
+## اتصال به API
+
+فرم‌ها فعلاً شبیه‌سازی‌شده‌اند. نقاط اتصال با کامنت `// TODO` مشخص شده‌اند:
+
+| فایل | endpoint پیشنهادی |
+|---|---|
+| `pages/Login.jsx` | `POST /auth/login` → `{ token, user }` |
+| `pages/Register.jsx` | `POST /auth/register` → `{ token, user }` |
+| `pages/ForgotPassword.jsx` | `POST /auth/forgot-password` · `POST /auth/verify-code` · `POST /auth/reset-password` |
+| `pages/StudentDashboard.jsx` | `GET /me/courses` · `GET /me/sessions` · `GET /me/assignments` · `GET /me/payments` |
+| `pages/InstructorDashboard.jsx` | `GET /teach/classes` · `GET /attendance` · `PUT /attendance` · `GET /submissions` |
+
+> پنل مدیریت (ادمین) پروژه جداگانه‌ای است که لایه API کاملش در فایل `API.md` همان پروژه مستند شده.
+
+---
+
+## نکات فنی
+
+- تمام اعداد با `toFa()` در `components/ui.jsx` به فارسی تبدیل می‌شوند (جداکننده `٬`، ممیز `٫`).
+- کلاس `tnum` روی ستون‌های عددی، اعداد را هم‌عرض می‌کند تا جدول‌ها نلرزند.
+- برای اعداد ترکیبی مثل `۴۸۰+` از `dir="auto"` استفاده شده تا ترتیب دوجهته درست بماند.
+- صفحات احراز هویت و داشبوردها هدر و فوتر عمومی ندارند (آرایه `BARE` در `App.jsx`).
