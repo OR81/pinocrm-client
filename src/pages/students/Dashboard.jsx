@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import DashboardShell from '../../components/DashboardShell'
 import Icon from '../../components/Icon'
-import { Chip, StatCard, Bar, Avatar, money, num, toFa } from '../../components/ui'
+import { Chip, StatCard, Bar, Avatar, money, num, toFa, Modal, Toast, useToast } from '../../components/ui'
 import { COURSES, INSTRUCTOR } from '../../data/site'
+
 const NAV = [
   {
     label: 'یادگیری',
@@ -408,62 +409,300 @@ function Payments() {
 
 /* ── پروفایل ── */
 function Profile({ user }) {
+  const INITIAL = {
+    first: 'وحید',
+    last: 'محبی',
+    mobile: '09281489325',
+    email: 'user1004@pinosite.ir',
+    city: 'تبریز',
+  }
+
+  const [form, setForm] = useState(INITIAL)
+  const [errors, setErrors] = useState({})
+  const [saving, setSaving] = useState(false)
+  const [pwOpen, setPwOpen] = useState(false)
+  const [toast, showToast] = useToast()
+
+  const set = (k) => (e) => {
+    setForm((f) => ({ ...f, [k]: e.target.value }))
+    setErrors((x) => ({ ...x, [k]: undefined }))
+  }
+
+  /** آیا چیزی نسبت به مقدار اولیه عوض شده؟ */
+  const dirty = Object.keys(INITIAL).some((k) => form[k].trim() !== INITIAL[k])
+
+  function validate() {
+    const e = {}
+    if (!form.first.trim()) e.first = 'نام را وارد کنید'
+    if (!form.last.trim()) e.last = 'نام خانوادگی را وارد کنید'
+    if (!/^09\d{9}$/.test(form.mobile.trim())) e.mobile = 'شماره موبایل باید ۱۱ رقم و با ۰۹ شروع شود'
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email.trim())) e.email = 'ایمیل معتبر نیست'
+    if (!form.city.trim()) e.city = 'شهر را وارد کنید'
+    setErrors(e)
+    return !Object.keys(e).length
+  }
+
+  async function save(ev) {
+    ev.preventDefault()
+    if (!validate()) {
+      showToast('لطفاً خطاهای فرم را برطرف کنید', 'rose')
+      return
+    }
+    setSaving(true)
+    try {
+      // TODO: PATCH /me  با بدنه‌ی form
+      await new Promise((r) => setTimeout(r, 800))
+      showToast('تغییرات ذخیره شد')
+    } catch {
+      showToast('ذخیره نشد؛ دوباره تلاش کنید', 'rose')
+    } finally {
+      setSaving(false)
+    }
+  }
+
   return (
-    <div className="grid gap-5 lg:grid-cols-3">
-      <div className="card p-7">
-        <div className="flex items-center gap-4">
-          <Avatar name={user.name} className="h-16 w-16 text-lg" />
-          <div>
-            <div className="text-lg font-extrabold text-fg">{user.name}</div>
-            <div className="text-sm text-fg-subtle">کد دانشجویی: <span className="tnum">۱۰۰۴</span></div>
-            <Chip tone="emerald">فعال</Chip>
-          </div>
-        </div>
-        <dl className="mt-7 space-y-3.5 border-t border-line-soft pt-6 text-sm">
-          {[
-            ['موبایل', toFa('09281489325'), 'phone'],
-            ['ایمیل', 'user1004@pinosite.ir', 'mail'],
-            ['شهر', 'تبریز', 'pin'],
-            ['تاریخ عضویت', toFa('۱۴۰۵/۰۴/۰۸'), 'calendar'],
-          ].map(([k, v, icon]) => (
-            <div key={k} className="flex items-center gap-2.5">
-              <Icon name={icon} className="h-4 w-4 shrink-0 text-ink-300" />
-              <dt className="text-fg-muted">{k}</dt>
-              <dd className="ms-auto font-semibold text-fg">{v}</dd>
+    <>
+      <div className="grid gap-5 lg:grid-cols-3">
+        <div className="card p-7">
+          <div className="flex items-center gap-4">
+            <Avatar name={user.name} className="h-16 w-16 text-lg" />
+            <div>
+              <div className="text-lg font-extrabold text-fg">{user.name}</div>
+              <div className="text-sm text-fg-subtle">
+                کد دانشجویی: <span className="tnum">۱۰۰۴</span>
+              </div>
+              <Chip tone="emerald">فعال</Chip>
             </div>
-          ))}
-        </dl>
+          </div>
+          <dl className="mt-7 space-y-3.5 border-t border-line-soft pt-6 text-sm">
+            {[
+              ['موبایل', toFa(form.mobile), 'phone'],
+              ['ایمیل', form.email, 'mail'],
+              ['شهر', form.city, 'pin'],
+              ['تاریخ عضویت', toFa('۱۴۰۵/۰۴/۰۸'), 'calendar'],
+            ].map(([k, v, icon]) => (
+              <div key={k} className="flex items-center gap-2.5">
+                <Icon name={icon} className="h-4 w-4 shrink-0 text-ink-300" />
+                <dt className="text-fg-muted">{k}</dt>
+                <dd className="ms-auto min-w-0 truncate font-semibold text-fg">{v}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+
+        <form onSubmit={save} noValidate className="card p-7 lg:col-span-2">
+          <h3 className="font-bold text-fg">ویرایش اطلاعات</h3>
+
+          <div className="mt-6 grid gap-5 sm:grid-cols-2">
+            <FormField label="نام" error={errors.first}>
+              <input className={`field ${errors.first ? 'field-error' : ''}`} value={form.first} onChange={set('first')} />
+            </FormField>
+
+            <FormField label="نام خانوادگی" error={errors.last}>
+              <input className={`field ${errors.last ? 'field-error' : ''}`} value={form.last} onChange={set('last')} />
+            </FormField>
+
+            <FormField label="موبایل" error={errors.mobile}>
+              <input
+                className={`field tnum ${errors.mobile ? 'field-error' : ''}`}
+                dir="ltr"
+                inputMode="numeric"
+                value={form.mobile}
+                onChange={set('mobile')}
+              />
+            </FormField>
+
+            <FormField label="ایمیل" error={errors.email}>
+              <input
+                className={`field ${errors.email ? 'field-error' : ''}`}
+                dir="ltr"
+                type="email"
+                value={form.email}
+                onChange={set('email')}
+              />
+            </FormField>
+
+            <div className="sm:col-span-2">
+              <FormField label="شهر" error={errors.city}>
+                <input className={`field ${errors.city ? 'field-error' : ''}`} value={form.city} onChange={set('city')} />
+              </FormField>
+            </div>
+          </div>
+
+          <div className="mt-7 flex flex-wrap items-center gap-2 border-t border-line-soft pt-6">
+            <button type="submit" disabled={saving || !dirty} className="btn btn-primary disabled:opacity-50">
+              {saving ? 'در حال ذخیره…' : 'ذخیره تغییرات'}
+            </button>
+            <button type="button" onClick={() => setPwOpen(true)} className="btn btn-ghost">
+              <Icon name="lock" className="h-4 w-4" />
+              تغییر رمز عبور
+            </button>
+            {dirty && !saving && (
+              <button
+                type="button"
+                onClick={() => {
+                  setForm(INITIAL)
+                  setErrors({})
+                }}
+                className="text-sm font-semibold text-fg-subtle hover:text-fg2"
+              >
+                انصراف
+              </button>
+            )}
+          </div>
+        </form>
       </div>
 
-      <div className="card p-7 lg:col-span-2">
-        <h3 className="font-bold text-fg">ویرایش اطلاعات</h3>
-        <div className="mt-6 grid gap-5 sm:grid-cols-2">
-          <div>
-            <label className="label">نام</label>
-            <input className="field" defaultValue="وحید" />
-          </div>
-          <div>
-            <label className="label">نام خانوادگی</label>
-            <input className="field" defaultValue="محبی" />
-          </div>
-          <div>
-            <label className="label">موبایل</label>
-            <input className="field tnum" dir="ltr" defaultValue="09281489325" />
-          </div>
-          <div>
-            <label className="label">ایمیل</label>
-            <input className="field" dir="ltr" defaultValue="user1004@pinosite.ir" />
-          </div>
-          <div className="sm:col-span-2">
-            <label className="label">شهر</label>
-            <input className="field" defaultValue="تبریز" />
-          </div>
-        </div>
-        <div className="mt-7 flex gap-2 border-t border-line-soft pt-6">
-          <button className="btn btn-primary">ذخیره تغییرات</button>
-          <button className="btn btn-ghost">تغییر رمز عبور</button>
-        </div>
-      </div>
+      <ChangePasswordModal open={pwOpen} onClose={() => setPwOpen(false)} onDone={(m) => showToast(m)} />
+      <Toast msg={toast.msg} tone={toast.tone} />
+    </>
+  )
+}
+
+/* یک فیلد با برچسب و پیام خطا */
+function FormField({ label, error, children }) {
+  return (
+    <div>
+      <label className="label">{label}</label>
+      {children}
+      {error && <p className="mt-1.5 text-xs font-semibold text-rose-600">{error}</p>}
     </div>
+  )
+}
+
+/* ── مودال تغییر رمز عبور ── */
+function ChangePasswordModal({ open, onClose, onDone }) {
+  const [form, setForm] = useState({ current: '', next: '', confirm: '' })
+  const [errors, setErrors] = useState({})
+  const [show, setShow] = useState(false)
+  const [busy, setBusy] = useState(false)
+
+  const set = (k) => (e) => {
+    setForm((f) => ({ ...f, [k]: e.target.value }))
+    setErrors((x) => ({ ...x, [k]: undefined }))
+  }
+
+  /** قدرت رمز: ۰ تا ۴ */
+  const score = (() => {
+    const p = form.next
+    let s = 0
+    if (p.length >= 8) s++
+    if (/[a-z]/.test(p) && /[A-Z]/.test(p)) s++
+    if (/\d/.test(p)) s++
+    if (/[^A-Za-z0-9]/.test(p)) s++
+    return s
+  })()
+  const STRENGTH = ['خیلی ضعیف', 'ضعیف', 'متوسط', 'خوب', 'قوی']
+
+  function reset() {
+    setForm({ current: '', next: '', confirm: '' })
+    setErrors({})
+    setShow(false)
+  }
+
+  function close() {
+    reset()
+    onClose()
+  }
+
+  async function submit(ev) {
+    ev.preventDefault()
+    const e = {}
+    if (!form.current) e.current = 'رمز فعلی را وارد کنید'
+    if (form.next.length < 8) e.next = 'رمز جدید حداقل ۸ کاراکتر باشد'
+    else if (form.next === form.current) e.next = 'رمز جدید باید با رمز فعلی فرق کند'
+    if (form.confirm !== form.next) e.confirm = 'تکرار رمز با رمز جدید یکی نیست'
+    setErrors(e)
+    if (Object.keys(e).length) return
+
+    setBusy(true)
+    try {
+      // TODO: POST /auth/change-password  { currentPassword, newPassword }
+      await new Promise((r) => setTimeout(r, 900))
+      onDone('رمز عبور با موفقیت تغییر کرد')
+      close()
+    } catch {
+      setErrors({ current: 'رمز فعلی درست نیست' })
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <Modal
+      open={open}
+      onClose={close}
+      title="تغییر رمز عبور"
+      sub="بعد از تغییر رمز، در دستگاه‌های دیگر باید دوباره وارد شوید."
+    >
+      <form onSubmit={submit} noValidate className="space-y-5">
+        <FormField label="رمز فعلی" error={errors.current}>
+          <input
+            className={`field ${errors.current ? 'field-error' : ''}`}
+            type={show ? 'text' : 'password'}
+            dir="ltr"
+            autoComplete="current-password"
+            value={form.current}
+            onChange={set('current')}
+          />
+        </FormField>
+
+        <FormField label="رمز جدید" error={errors.next}>
+          <input
+            className={`field ${errors.next ? 'field-error' : ''}`}
+            type={show ? 'text' : 'password'}
+            dir="ltr"
+            autoComplete="new-password"
+            value={form.next}
+            onChange={set('next')}
+          />
+          {form.next && (
+            <div className="mt-2 flex items-center gap-2">
+              <div className="flex flex-1 gap-1">
+                {[0, 1, 2, 3].map((i) => (
+                  <span
+                    key={i}
+                    className={`h-1.5 flex-1 rounded-full ${
+                      i < score ? (score <= 1 ? 'bg-rose-500' : score === 2 ? 'bg-amber-500' : 'bg-emerald-500') : 'bg-surface-3'
+                    }`}
+                  />
+                ))}
+              </div>
+              <span className="shrink-0 text-[11px] text-fg-subtle">{STRENGTH[score]}</span>
+            </div>
+          )}
+        </FormField>
+
+        <FormField label="تکرار رمز جدید" error={errors.confirm}>
+          <input
+            className={`field ${errors.confirm ? 'field-error' : ''}`}
+            type={show ? 'text' : 'password'}
+            dir="ltr"
+            autoComplete="new-password"
+            value={form.confirm}
+            onChange={set('confirm')}
+          />
+        </FormField>
+
+        <label className="flex cursor-pointer items-center gap-2 text-sm text-fg-muted">
+          <input
+            type="checkbox"
+            checked={show}
+            onChange={(e) => setShow(e.target.checked)}
+            className="h-4 w-4 rounded border-fg-subtle accent-brand-600"
+          />
+          نمایش رمزها
+        </label>
+
+        <div className="flex gap-2 border-t border-line-soft pt-5">
+          <button type="submit" disabled={busy} className="btn btn-primary flex-1 disabled:opacity-50">
+            {busy ? 'در حال ثبت…' : 'ثبت رمز جدید'}
+          </button>
+          <button type="button" onClick={close} className="btn btn-ghost">
+            انصراف
+          </button>
+        </div>
+      </form>
+    </Modal>
   )
 }

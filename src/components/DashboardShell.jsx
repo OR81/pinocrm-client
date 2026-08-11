@@ -2,18 +2,33 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { LogoWordmark } from './Logo'
 import Icon from './Icon'
-import { Avatar } from './ui'
+import { Avatar, toFa } from './ui'
 import { ThemeToggle } from './theme'
 import { useAuth } from '../auth'
+
+/* اعلان‌های پیش‌فرض — بعداً از GET /me/notifications بیاید */
+const DEFAULT_NOTIFS = [
+  { id: 1, icon: 'calendar', title: 'یادآوری کلاس فردا', body: 'پایتون ساعت ۱۴:۰۰ و n8n ساعت ۱۷:۰۰', time: '۲ ساعت پیش', read: false },
+  { id: 2, icon: 'file', title: 'تمرین جلسه ۱۰ تصحیح شد', body: 'نمره شما: ۱۸٫۵ از ۲۰', time: 'دیروز', read: false },
+  { id: 3, icon: 'wallet', title: 'سررسید قسط سوم نزدیک است', body: 'تا ۱۴۰۵/۰۵/۲۵ فرصت دارید', time: '۳ روز پیش', read: true },
+  { id: 4, icon: 'play', title: 'ویدیوی جلسه ۱۰ منتشر شد', body: 'اتصال به تلگرام، ایمیل و پیامک', time: '۵ روز پیش', read: true },
+]
 
 /**
  * پوسته مشترک داشبوردها: سایدبار + هدر.
  * فقط ستون محتوا اسکرول می‌شود تا سایدبار چسبیده به لبه بماند.
  */
-export default function DashboardShell({ nav, active, onNavigate, user, children, title, sub }) {
+export default function DashboardShell({ nav, active, onNavigate, user, children, title, sub, notifications }) {
   const [open, setOpen] = useState(false)
+  const [bell, setBell] = useState(false)
+  const [notifs, setNotifs] = useState(notifications ?? DEFAULT_NOTIFS)
   const { logout } = useAuth()
   const navigate = useNavigate()
+
+  const unread = notifs.filter((n) => !n.read).length
+
+  const readAll = () => setNotifs((list) => list.map((n) => ({ ...n, read: true })))
+  const readOne = (id) => setNotifs((list) => list.map((n) => (n.id === id ? { ...n, read: true } : n)))
 
   const signOut = () => {
     logout()
@@ -26,7 +41,7 @@ export default function DashboardShell({ nav, active, onNavigate, user, children
 
       {/* سایدبار */}
       <aside
-        className={`fixed inset-y-0 end-0 z-50 flex h-full w-[262px] shrink-0 flex-col border-s border-line bg-surface transition-transform lg:static lg:translate-x-0 ${
+        className={`fixed inset-y-0 start-0 z-50 flex h-full w-[262px] shrink-0 flex-col border-e border-line bg-surface transition-transform lg:static lg:translate-x-0 ${
           open ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
@@ -118,10 +133,70 @@ export default function DashboardShell({ nav, active, onNavigate, user, children
               کلاس‌ها یکشنبه‌ها · امروز <span className="tnum">۱۴۰۵/۰۵/۱۷</span>
             </span>
             <ThemeToggle />
-            <button className="relative grid h-10 w-10 place-items-center rounded-xl border border-line text-fg-muted">
-              <Icon name="bell" className="h-4 w-4" />
-              <span className="absolute end-2.5 top-2.5 h-1.5 w-1.5 rounded-full bg-rose-500" />
-            </button>
+
+            {/* اعلان‌ها */}
+            <div className="relative">
+              <button
+                onClick={() => setBell((v) => !v)}
+                aria-label="اعلان‌ها"
+                aria-expanded={bell}
+                className={`relative grid h-10 w-10 place-items-center rounded-xl border transition-colors ${
+                  bell ? 'border-brand-300 bg-brand-50 text-brand-700' : 'border-line text-fg-muted hover:bg-surface-2'
+                }`}
+              >
+                <Icon name="bell" className="h-4 w-4" />
+                {unread > 0 && (
+                  <span className="absolute -end-1 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white tnum">
+                    {toFa(unread)}
+                  </span>
+                )}
+              </button>
+
+              {bell && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setBell(false)} />
+                  <div className="absolute end-0 top-12 z-50 w-[320px] max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-line bg-surface">
+                    <div className="flex items-center justify-between border-b border-line-soft px-4 py-3">
+                      <span className="text-sm font-bold text-fg">اعلان‌ها</span>
+                      {unread > 0 && (
+                        <button onClick={readAll} className="text-xs font-semibold text-brand-600 hover:text-brand-700">
+                          همه را خوانده‌شده کن
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="max-h-[380px] divide-y divide-line-soft overflow-y-auto">
+                      {notifs.length === 0 && (
+                        <div className="p-8 text-center text-sm text-fg-subtle">اعلان تازه‌ای ندارید</div>
+                      )}
+                      {notifs.map((n) => (
+                        <button
+                          key={n.id}
+                          onClick={() => readOne(n.id)}
+                          className={`flex w-full items-start gap-3 p-4 text-right transition-colors hover:bg-surface-2/60 ${
+                            n.read ? '' : 'bg-brand-50/40'
+                          }`}
+                        >
+                          <span
+                            className={`mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-xl ${
+                              n.read ? 'bg-surface-3 text-fg-muted' : 'bg-brand-50 text-brand-600'
+                            }`}
+                          >
+                            <Icon name={n.icon} className="h-4 w-4" />
+                          </span>
+                          <span className="min-w-0 flex-1">
+                            <span className="block text-sm font-semibold leading-6 text-fg">{n.title}</span>
+                            <span className="mt-0.5 block text-xs leading-6 text-fg-muted">{n.body}</span>
+                            <span className="mt-1 block text-[11px] text-fg-subtle">{n.time}</span>
+                          </span>
+                          {!n.read && <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-brand-600" />}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
             <button
               onClick={signOut}
               className="hidden h-10 items-center gap-2 rounded-xl border border-line px-3 text-sm font-semibold text-fg-muted transition-colors hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600 sm:flex"
