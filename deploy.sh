@@ -1,10 +1,10 @@
 rm -rf node_modules
 rm -rf build
 
-npm ci
+npm install --force
 npm run build
 
-pm2 reload aylin-client --update-env
+pm2 reload 0
 
 echo "----- build -----"
 ls -la build | head
