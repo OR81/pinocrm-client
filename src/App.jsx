@@ -14,6 +14,7 @@ import Register from './pages/Register'
 import ForgotPassword from './pages/ForgotPassword'
 import StudentDashboard from './pages/students/Dashboard'
 import InstructorDashboard from './pages/Instructor/Dashboard'
+ import { RequireRole } from './auth'
 /** صفحاتی که هدر و فوتر عمومی ندارند */
 const BARE = ['/login', '/forgot-password', '/dashboard']
 
@@ -69,6 +70,15 @@ export default function App() {
 
         <Route path="/dashboard/student" element={<StudentDashboard />} />
         <Route path="/dashboard/instructor" element={<InstructorDashboard />} />
+
+<Route
+  path="/dashboard/student"
+  element={<RequireRole role="student"><StudentDashboard /></RequireRole>}
+/>
+<Route
+  path="/dashboard/instructor"
+  element={<RequireRole role="instructor"><InstructorDashboard /></RequireRole>}
+/>
 
         <Route path="*" element={<NotFound />} />
       </Routes>

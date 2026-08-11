@@ -1,30 +1,36 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { LogoWordmark } from './Logo'
 import Icon from './Icon'
 import { Avatar } from './ui'
 import { ThemeToggle } from './theme'
+import { useAuth } from '../auth'
 
 /**
  * پوسته مشترک داشبوردها: سایدبار + هدر.
- * تب‌ها به‌صورت state داخلی مدیریت می‌شوند تا صفحه ساده بماند.
+ * فقط ستون محتوا اسکرول می‌شود تا سایدبار چسبیده به لبه بماند.
  */
 export default function DashboardShell({ nav, active, onNavigate, user, children, title, sub }) {
   const [open, setOpen] = useState(false)
+  const { logout } = useAuth()
+  const navigate = useNavigate()
+
+  const signOut = () => {
+    logout()
+    navigate('/login', { replace: true })
+  }
 
   return (
-    <div className="flex min-h-screen bg-surface-2">
-      {open && (
-        <div className="fixed inset-0 z-40 bg-ink-950/40 lg:hidden" onClick={() => setOpen(false)} />
-      )}
+    <div className="flex h-screen overflow-hidden bg-surface-2">
+      {open && <div className="fixed inset-0 z-40 bg-ink-950/40 lg:hidden" onClick={() => setOpen(false)} />}
 
       {/* سایدبار */}
       <aside
-        className={`fixed inset-y-0 end-0 z-50 flex w-[262px] shrink-0 flex-col border-s border-line bg-surface transition-transform lg:static lg:translate-x-0 ${
+        className={`fixed inset-y-0 end-0 z-50 flex h-full w-[262px] shrink-0 flex-col border-s border-line bg-surface transition-transform lg:static lg:translate-x-0 ${
           open ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
-        <div className="flex h-16 items-center border-b border-line-soft px-5">
+        <div className="flex h-16 shrink-0 items-center border-b border-line-soft px-5">
           <Link to="/">
             <LogoWordmark markClass="h-9 w-9 text-brand-600" sub={false} />
           </Link>
@@ -40,7 +46,7 @@ export default function DashboardShell({ nav, active, onNavigate, user, children
         <nav className="flex-1 overflow-y-auto p-3">
           {nav.map((group) => (
             <div key={group.label} className="mb-5">
-              <div className="px-3 pb-2 text-[11px] font-semibold text-ink-300">{group.label}</div>
+              <div className="px-3 pb-2 text-[11px] font-semibold text-fg-subtle">{group.label}</div>
               {group.items.map((it) => (
                 <button
                   key={it.key}
@@ -71,27 +77,29 @@ export default function DashboardShell({ nav, active, onNavigate, user, children
           ))}
         </nav>
 
-        <div className="border-t border-line-soft p-4">
-          <div className="flex items-center gap-2.5">
+        {/* کاربر + خروج */}
+        <div className="shrink-0 border-t border-line-soft p-3">
+          <div className="flex items-center gap-2.5 px-2 pb-3">
             <Avatar name={user.name} className="h-9 w-9 text-[11px]" />
             <div className="min-w-0 flex-1">
               <div className="truncate text-sm font-bold text-fg">{user.name}</div>
               <div className="truncate text-[11px] text-fg-subtle">{user.role}</div>
             </div>
-            <Link
-              to="/login"
-              className="grid h-8 w-8 place-items-center rounded-lg text-fg-subtle hover:bg-surface-2 hover:text-fg2"
-              title="خروج"
-            >
-              <Icon name="logout" className="h-4 w-4" />
-            </Link>
           </div>
+
+          <button
+            onClick={signOut}
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-rose-200 bg-rose-50 py-2.5 text-sm font-semibold text-rose-600 transition-colors hover:bg-rose-100"
+          >
+            <Icon name="logout" className="h-4 w-4" />
+            خروج از حساب
+          </button>
         </div>
       </aside>
 
       {/* محتوا */}
-      <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-line bg-surface px-5">
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+        <header className="flex h-16 shrink-0 items-center gap-3 border-b border-line bg-surface px-5">
           <button
             className="grid h-10 w-10 place-items-center rounded-xl border border-line text-fg2 lg:hidden"
             onClick={() => setOpen(true)}
@@ -114,11 +122,18 @@ export default function DashboardShell({ nav, active, onNavigate, user, children
               <Icon name="bell" className="h-4 w-4" />
               <span className="absolute end-2.5 top-2.5 h-1.5 w-1.5 rounded-full bg-rose-500" />
             </button>
+            <button
+              onClick={signOut}
+              className="hidden h-10 items-center gap-2 rounded-xl border border-line px-3 text-sm font-semibold text-fg-muted transition-colors hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600 sm:flex"
+            >
+              <Icon name="logout" className="h-4 w-4" />
+              خروج
+            </button>
             <Avatar name={user.name} className="h-10 w-10 text-[11px]" />
           </div>
         </header>
 
-        <main className="flex-1 p-5 sm:p-7">{children}</main>
+        <main className="flex-1 overflow-y-auto p-5 sm:p-7">{children}</main>
       </div>
     </div>
   )

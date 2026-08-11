@@ -3,14 +3,15 @@ import { Link, useNavigate } from 'react-router-dom'
 import AuthLayout, { Field } from '../components/AuthLayout'
 import Icon from '../components/Icon'
 import { toFa } from '../components/ui'
+import { useAuth } from '../auth'
 
 export default function Login() {
   const nav = useNavigate()
+  const { login } = useAuth()
   const [form, setForm] = useState({ identifier: '', password: '', remember: true })
   const [errors, setErrors] = useState({})
   const [showPass, setShowPass] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [role, setRole] = useState('student')
 
   const set = (k) => (e) =>
     setForm((f) => ({ ...f, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }))
@@ -30,10 +31,17 @@ export default function Login() {
     ev.preventDefault()
     if (!validate()) return
     setLoading(true)
-    // TODO: POST /auth/login  → { token, user }
+
+    // TODO: وقتی API آماده شد، این بلوک را با fetch واقعی عوض کن.
+    // نقش کاربر باید از پاسخ سرور بیاید، نه از انتخاب کاربر:
+    //   const { user, token } = (await res.json()).data
+    //   login(user, token)
+    //   nav(user.role === 'instructor' ? '/dashboard/instructor' : '/dashboard/student')
     setTimeout(() => {
+      const user = { id: 'stu_1004', name: 'وحید محبی', role: 'student' }
+      login(user, 'fake-token')
       setLoading(false)
-      nav(role === 'instructor' ? '/dashboard/instructor' : '/dashboard/student')
+      nav('/dashboard/student')
     }, 700)
   }
 
@@ -44,25 +52,6 @@ export default function Login() {
       footer="© ۱۴۰۵ پینو سایت"
     >
       <form onSubmit={submit} noValidate className="space-y-5">
-        {/* انتخاب نقش — برای دموی پنل‌ها */}
-        <div className="grid grid-cols-2 gap-2 rounded-2xl bg-surface-2 p-1.5">
-          {[
-            { v: 'student', l: 'دانشجو' },
-            { v: 'instructor', l: 'استاد' },
-          ].map((r) => (
-            <button
-              key={r.v}
-              type="button"
-              onClick={() => setRole(r.v)}
-              className={`rounded-xl py-2.5 text-sm font-semibold transition-colors ${
-                role === r.v ? 'bg-surface text-fg' : 'text-fg-muted hover:text-fg2'
-              }`}
-            >
-              {r.l}
-            </button>
-          ))}
-        </div>
-
         <Field label="موبایل یا ایمیل" id="identifier" error={errors.identifier}>
           <input
             id="identifier"
