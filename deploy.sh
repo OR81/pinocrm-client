@@ -23,4 +23,5 @@ cp -r dist/. "$TARGET"/
 
 echo "----- محتوای public_html -----"
 ls -la "$TARGET"
+cat "$TARGET/.htaccess" 2>/dev/null || echo "no .htaccess"
 echo "✅ done"
