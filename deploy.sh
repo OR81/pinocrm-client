@@ -4,7 +4,9 @@ rm -rf build
 npm install --force
 npm run build
 
-pm2 reload 0
+cp -r dist build
+
+pm2 reload aylin-client --update-env
 
 echo "----- build -----"
 ls -la build | head
